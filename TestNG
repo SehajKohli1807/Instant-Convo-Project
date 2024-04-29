@@ -1,0 +1,90 @@
+package Selenium;
+
+import org.openqa.selenium.*;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import org.testng.annotations.*;
+
+import java.time.Duration;
+
+public class AppTest {
+
+    private WebDriver driver;
+
+    @BeforeClass
+    public void setUp() {
+        driver = new ChromeDriver();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
+        driver.get("http://localhost:3000/login");
+    }
+
+    @Test
+    public void testAutomateLogin() {
+        AutomateLogin(driver);
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        String expectedHomePageURL = "http://localhost:3000";
+        try {
+            wait.until(ExpectedConditions.urlToBe(expectedHomePageURL));
+            System.out.println("Logged in successfully");
+        } catch (Exception e) {
+            System.out.println("Logged in Unsuccessful");
+            Assert.fail("Login unsuccessful");
+        }
+    }
+
+    @Test
+    public void testAutomateRegister() {
+        AutomateRegister(driver);
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        String expectedAvatarPageURL = "http://localhost:3000/setAvatar";
+
+        try {
+            wait.until(ExpectedConditions.urlToBe(expectedAvatarPageURL));
+            System.out.println("Registered and navigated to Avatar page successfully");
+        } catch (Exception e) {
+            System.out.println("Unsuccessful");
+            Assert.fail("Registration unsuccessful");
+        }
+    }
+
+    @Test(enabled=true)
+    public void testAvatarSelection() {
+        AutomateRegister(driver);
+
+        driver.get("http://localhost:3000/setAvatar");
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(90));
+        By avatarElementLocator = By.xpath("//*[@id=\'root\']/div/div[2]/div[2]");
+
+        try {
+            WebElement avatarElement = wait.until(ExpectedConditions.visibilityOfElementLocated(avatarElementLocator));
+
+            avatarElement.click();
+
+            WebElement setProfileButton = driver.findElement(By.className("submit-btn"));
+            setProfileButton.click();
+
+            String expectedHomePageURL = "http://localhost:3000/";
+            wait.until(ExpectedConditions.urlToBe(expectedHomePageURL));
+
+            System.out.println("Avatar selection and profile picture set successfully");
+        } catch (org.openqa.selenium.TimeoutException e) {
+            System.err.println("Timeout waiting for the avatar element to be present");
+            Assert.fail("Timeout waiting for avatar element");
+        } catch (org.openqa.selenium.StaleElementReferenceException e) {
+            System.err.println("StaleElementReferenceException. Retrying...");
+        } catch (org.openqa.selenium.NoSuchElementException e) {
+            System.err.println("Unable to locate the avatar element");
+            Assert.fail("Unable to locate avatar element");
+        }
+    }
+
+    @AfterClass
+    public void tearDown() {
+        driver.quit();
+    }
+}
